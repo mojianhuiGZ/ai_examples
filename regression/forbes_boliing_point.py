@@ -10,6 +10,32 @@ import numpy
 import pandas
 import matplotlib.pyplot as pyplot
 
+
+def boiling_point_vs_log_pressure():
+        x = data_frame['log(pressure)'].values
+        y = data_frame['boiling_point'].values
+        x = x.reshape(x.shape[0], 1)
+        y = y.reshape(y.shape[0], 1)
+
+        x_train, x_test, y_train, y_test = train_test_split(x, y)
+
+        regressor = LinearRegression()
+        regressor.fit(x_train, y_train)
+
+        print 'score: %.2f' % (regressor.score(x_test, y_test))
+
+        scores = cross_val_score(regressor, x, y, cv=4)
+        print 'scores: {}'.format(scores)
+
+        x_draw = numpy.linspace(0, 2, 20)
+        y_draw = regressor.predict(x_draw.reshape(x_draw.shape[0], 1))
+
+        pyplot.scatter(x, y)
+        pyplot.plot(x_draw, y_draw, c='r', linestyle='--')
+        pyplot.grid(True)
+        pyplot.show()
+
+
 data = [[194.5, 20.79, 1.3179],
         [194.3, 20.79, 1.3179],
         [197.9, 22.40, 1.3502],
@@ -30,25 +56,4 @@ data = [[194.5, 20.79, 1.3179],
 
 data_frame = pandas.DataFrame(data, columns=['boiling_point', 'pressure', 'log(pressure)'])
 
-x = data_frame['pressure'].values
-y = data_frame['boiling_point'].values
-x = x.reshape(x.shape[0], 1)
-y = y.reshape(y.shape[0], 1)
-
-x_train, x_test, y_train, y_test = train_test_split(x, y)
-
-regressor = LinearRegression()
-regressor.fit(x_train, y_train)
-
-print 'score: %.2f' % (regressor.score(x_test, y_test))
-
-scores = cross_val_score(regressor, x, y, cv=4)
-print 'scores: {}'.format(scores)
-
-x_draw = numpy.linspace(16, 32, 20)
-y_draw = regressor.predict(x_draw.reshape(x_draw.shape[0], 1))
-
-pyplot.scatter(x, y)
-pyplot.plot(x_draw, y_draw, c='r', linestyle='--')
-pyplot.grid(True)
-pyplot.show()
+boiling_point_vs_log_pressure()
