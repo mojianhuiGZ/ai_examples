@@ -12,10 +12,11 @@ import matplotlib.pyplot as pyplot
 from torch import unsqueeze
 from torch import FloatTensor
 
+
 MNIST_ROOT = 'mnist'
 LR = 0.001
-BATCH_SIZE = 100
-EPOCH = 1
+BATCH_SIZE = 50
+EPOCH = 3
 PARAMS_FILE = 'params.pkl'
 
 
@@ -111,20 +112,21 @@ for epoch in range(EPOCH):
     for step, (x, y) in enumerate(train_data_loader):
         output = cnn(Variable(x))
         loss = loss_func(output, Variable(y))
+        print 'loss is {:.4f}'.format(loss.data[0])
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if step % 100 == 0:
-            test_output = cnn(test_X1)
-            pred_Y1 = torch.max(test_output, 1)[1].data.squeeze()
-            accuracy = sum(pred_Y1 == test_Y1) / float(test_Y1.size(0))
-            print 'Epoch: %d | train loss: %.4f | test accuracy: %.4f' % (epoch, loss.data[0], accuracy)
+        # if step % 100 == 0:
+        #     test_output = cnn(test_X1)
+        #     pred_Y1 = torch.max(test_output, 1)[1].data.squeeze()
+        #     accuracy = sum(pred_Y1 == test_Y1) / float(test_Y1.size(0))
+        #     print 'Epoch: %d | train loss: %.4f | test accuracy: %.4f' % (epoch, loss.data[0], accuracy)
 
 test_output = cnn(test_X)
 pred_Y = torch.max(test_output, 1)[1].data.squeeze()
 accuracy = sum(pred_Y == test_Y) / float(test_Y.size(0))
-print 'train loss: %.4f | test accuracy: %.4f' % (epoch, loss.data[0], accuracy)
+print 'train loss: %.4f | test accuracy: %.4f' % (loss.data[0], accuracy)
 
 print 'Save CNN parameters to %s' % (PARAMS_FILE)
 torch.save(cnn.state_dict(), PARAMS_FILE)
