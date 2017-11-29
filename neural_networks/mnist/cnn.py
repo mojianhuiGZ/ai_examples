@@ -16,13 +16,15 @@ from torch import FloatTensor
 MNIST_ROOT = 'mnist'
 LR = 0.001
 BATCH_SIZE = 50
-EPOCH = 3
+EPOCH = 2
 PARAMS_FILE = 'params.pkl'
+FIGURE_FILE = 'figure.png'
 
 
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
+
         self.conv1 = nn.Sequential(  # input shape (1, 28, 28)
             nn.Conv2d(in_channels=1,
                       out_channels=16,
@@ -33,6 +35,27 @@ class CNN(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),  # output shape (16, 14, 14)
         )
+
+        # to reduce parameters, we can use two 3 x 3 kernel instead of 5 x 5 kernel
+        # but the new CNN will learn slowly, because CNN become more deeper.
+
+        # self.conv1 = nn.Sequential(  # input shape (1, 28, 28)
+        #     nn.Conv2d(in_channels=1,
+        #               out_channels=16,
+        #               kernel_size=3,
+        #               stride=1,
+        #               padding=1,
+        #               ),  # output shape (16, 28, 28)
+        #     nn.Conv2d(in_channels=16,
+        #               out_channels=16,
+        #               kernel_size=3,
+        #               stride=1,
+        #               padding=1,
+        #               ),  # output shape (16, 28, 28)
+        #     nn.ReLU(),
+        #     nn.MaxPool2d(kernel_size=2),  # output shape (16, 14, 14)
+        # )
+
         self.conv2 = nn.Sequential(
             nn.Conv2d(in_channels=16,
                       out_channels=32,
@@ -66,8 +89,6 @@ print 'Load MNIST test data OK. data size is {}'.format(tuple(test_data.test_dat
 test_X = Variable(unsqueeze(test_data.test_data, dim=1), volatile=True).type(FloatTensor) / 255.0
 test_Y = test_data.test_labels
 
-test_X1 = test_X[:2000]
-test_Y1 = test_Y[:2000]
 
 # show train and test images
 
@@ -93,13 +114,11 @@ if is_show == 'Y' or is_show == 'y':
         pyplot.imshow(test_data.test_data[i].numpy(), cmap='gray')
     pyplot.show()
 
-# train CNN
+
+# training
 
 cnn = CNN()
 print 'CNN architecture:\n{}'.format(cnn)
-
-optimizer = Adam(cnn.parameters(), lr=LR)
-loss_func = nn.CrossEntropyLoss()
 
 is_load_params = raw_input('Load CNN parameters [Y/n]?')
 if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
@@ -108,25 +127,44 @@ if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
     except IOError as e:
         pass
 
-for epoch in range(EPOCH):
-    for step, (x, y) in enumerate(train_data_loader):
-        output = cnn(Variable(x))
-        loss = loss_func(output, Variable(y))
-        print 'loss is {:.4f}'.format(loss.data[0])
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+losses = []
+is_train = raw_input('Train CNN [Y/n]?')
+if is_train == 'Y' or is_train == 'y' or is_train == '':
+    optimizer = Adam(cnn.parameters(), lr=LR)
+    loss_func = nn.CrossEntropyLoss()
+    for epoch in range(EPOCH):
+        for step, (x, y) in enumerate(train_data_loader):
+            output = cnn(Variable(x))
+            loss = loss_func(output, Variable(y))
+            losses.append(loss.data[0])
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        # if step % 100 == 0:
-        #     test_output = cnn(test_X1)
-        #     pred_Y1 = torch.max(test_output, 1)[1].data.squeeze()
-        #     accuracy = sum(pred_Y1 == test_Y1) / float(test_Y1.size(0))
-        #     print 'Epoch: %d | train loss: %.4f | test accuracy: %.4f' % (epoch, loss.data[0], accuracy)
+    fg = pyplot.figure()
+    fg.suptitle('loss curve')
+    loss_curve, = pyplot.plot(losses, c='r')
+    pyplot.grid(True)
+    pyplot.savefig(FIGURE_FILE)
+    is_show = raw_input('Show loss curve [y/N]?')
+    if is_show == 'Y' or is_show == 'y':
+        pyplot.show(fg)
+    pyplot.close(fg)
 
-test_output = cnn(test_X)
-pred_Y = torch.max(test_output, 1)[1].data.squeeze()
+
+# test
+
+pred_Y = []
+for i in range(len(test_X)):
+    x = unsqueeze(test_X[i], dim=0)
+    output = cnn(x)
+    y = torch.max(output, 1)[1].data.squeeze()
+    pred_Y.append(y[0])
+
+pred_Y = torch.LongTensor(pred_Y)
 accuracy = sum(pred_Y == test_Y) / float(test_Y.size(0))
-print 'train loss: %.4f | test accuracy: %.4f' % (loss.data[0], accuracy)
+print 'accuracy: %.4f' % (accuracy)
 
 print 'Save CNN parameters to %s' % (PARAMS_FILE)
 torch.save(cnn.state_dict(), PARAMS_FILE)
+
