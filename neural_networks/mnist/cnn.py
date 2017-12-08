@@ -5,16 +5,16 @@ import torch
 from torchvision import datasets, transforms
 from torch.utils import data
 import torch.nn as nn
+from torch.nn import functional
 from torch import optim
 from torch.autograd import Variable
 from matplotlib import pyplot
 import numpy as np
 
-
 MNIST_ROOT = 'mnist'
 LR = 0.001
 BATCH_SIZE = 50
-EPOCH = 64
+EPOCH = 1
 PARAMS_FILE = 'params.pkl'
 FIGURE_FILE = 'figure.png'
 
@@ -42,7 +42,7 @@ class CNN(nn.Module):
         x = self.conv2(x)
         x = x.view(x.size(0), -1)
         x = self.fc1(x)
-        return x
+        return functional.softmax(x)
 
 
 def predict(cnn, test_data):
@@ -50,6 +50,7 @@ def predict(cnn, test_data):
     pred_Y = []
     for i in range(len(test_data)):
         x = Variable(torch.unsqueeze(test_data[i][0], dim=0))
+        x = x - x.mean(dim=0)
         output = cnn(x)
         y = torch.max(output, 1)[1].data.squeeze()
         pred_Y.append(y[0])
@@ -66,13 +67,13 @@ def save_parameters(cnn):
 # prepare train and test data
 
 train_data = datasets.MNIST(MNIST_ROOT, train=True, download=True, transform=transforms.ToTensor())
+
 test_data = datasets.MNIST(MNIST_ROOT, train=False, download=True, transform=transforms.ToTensor())
 
 train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 
 print 'Load MNIST train data OK. data size is {}'.format(tuple(train_data.train_data.size()))
 print 'Load MNIST test data OK. data size is {}'.format(tuple(test_data.test_data.size()))
-
 
 # show train and test images
 
@@ -98,7 +99,6 @@ if is_show == 'Y' or is_show == 'y':
         pyplot.imshow(test_data.test_data[i].numpy(), cmap='gray')
     pyplot.show()
 
-
 # training
 
 cnn = CNN()
@@ -118,6 +118,7 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
     loss_func = nn.CrossEntropyLoss()
     for epoch in range(EPOCH):
         for step, (x, y) in enumerate(train_data_loader):
+            x = x - x.mean(dim=0)
             output = cnn(Variable(x))
             loss = loss_func(output, Variable(y))
             losses.append(loss.data[0])
@@ -138,7 +139,6 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
     if is_show == 'Y' or is_show == 'y':
         pyplot.show(fg)
     pyplot.close(fg)
-
 
 # test
 

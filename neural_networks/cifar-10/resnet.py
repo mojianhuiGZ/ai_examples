@@ -13,7 +13,8 @@ from matplotlib import pyplot
 import numpy as np
 
 CIFAR10_ROOT = 'cifar-10'
-LR = 0.01
+#LR = 0.002
+LR = 0.02
 BATCH_SIZE = 64
 EPOCH = 32
 PARAMS_FILE = 'resnet_params.pkl'
@@ -21,37 +22,95 @@ FIGURE_FILE = 'resnet_loss.png'
 CUDA = torch.cuda.is_available()
 
 
-# CNN
+# ResNet
 
-class CNN(nn.Module):
-    """ plain CNN
-        parameter count = 5*5*3*24 + 24 + 24*24*5*5 + 24 + 48*24*5*5 + 48 + 48*48*5*5 + 48 + 10*3072 + 10 = 133474
-    """
+def conv3x3(in_planes, out_planes, stride=1):
+    "3x3 convolution with padding"
+    #return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+    #                 padding=1, bias=True)
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     padding=1, bias=False)
 
-    def __init__(self):
-        super(CNN, self).__init__()
+from torchvision.models import resnet18
 
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 24, kernel_size=5, stride=1, padding=2, bias=False),
-            nn.BatchNorm2d(24),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
-        )
+class BasicBlock(nn.Module):
+    expansion = 1
 
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(24, 48, kernel_size=5, stride=1, padding=2, bias=False),
-            nn.BatchNorm2d(48),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
-        )
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(BasicBlock, self).__init__()
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.downsample = downsample
+        self.stride = stride
 
-        self.fc1 = nn.Linear(48 * 8 * 8, 10)
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+class ResNet(nn.Module):
+    def __init__(self, block, layers):
+        self.inplanes = 24
+        super(ResNet, self).__init__()
+        #self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=True)
+        self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(24)
+        self.relu = nn.ReLU(inplace=True)
+        self.layer1 = self._make_layer(block, 24, layers[0])
+        self.layer2 = self._make_layer(block, 48, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, 96, layers[1], stride=2)
+        self.avgpool = nn.AvgPool2d(8)
+        self.fc = nn.Linear(96 * block.expansion, 10)
+
+    def _make_layer(self, block, planes, blocks, stride=1):
+        downsample = None
+        if stride != 1 or self.inplanes != planes * block.expansion:
+            downsample = nn.Sequential(
+                # nn.Conv2d(self.inplanes, planes * block.expansion,
+                #           kernel_size=3, stride=stride, padding=1, bias=True),
+                nn.Conv2d(self.inplanes, planes * block.expansion,
+                          kernel_size=3, stride=stride, padding=1, bias=False),
+                nn.BatchNorm2d(planes * block.expansion),
+            )
+
+        layers = []
+        layers.append(block(self.inplanes, planes, stride, downsample))
+        self.inplanes = planes * block.expansion
+        for i in range(1, blocks):
+            layers.append(block(self.inplanes, planes))
+
+        return nn.Sequential(*layers)
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.conv2(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+
+        x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        x = self.fc1(x)
+        x = self.fc(x)
+
         return x
 
 
@@ -82,19 +141,17 @@ def save_parameters(cnn):
 # prepare train and test data
 
 train_data = datasets.CIFAR10(CIFAR10_ROOT, train=True, download=True, transform=transforms.Compose([
-    # transforms.Pad(4),
-    # transforms.RandomCrop(32),
-    # transforms.RandomHorizontalFlip(),
+    transforms.Pad(4),
+    transforms.RandomCrop(32),
+    transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]))
 
 test_data = datasets.CIFAR10(CIFAR10_ROOT, train=False, download=True, transform=transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]))
 
-train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
+train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
 
 print('Load CIFAR10 train data OK. data size is {}'.format(tuple(train_data.train_data.shape)))
 print('Load CIFAR10 test data OK. data size is {}'.format(tuple(test_data.test_data.shape)))
@@ -127,7 +184,9 @@ if is_show == 'Y' or is_show == 'y':
 
 # training
 
-cnn = CNN()
+# parameter count = 562666
+cnn = ResNet(BasicBlock, [2, 2, 2])
+#cnn = ResNet(BasicBlock, [1, 1, 1])
 if CUDA:
     cnn = cnn.cuda()
 print('CNN architecture:\n{}'.format(cnn))
@@ -155,6 +214,9 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
                 y = y.cuda(async=True)
             xv = Variable(x)
             yv = Variable(y)
+            #if CUDA:
+            #    xv = xv.cuda()
+            #    yv = yv.cuda()
             output = cnn(xv)
             loss = loss_func(output, yv)
             losses.append(loss.data[0])
@@ -166,7 +228,7 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
         accuracy = predict(cnn, test_data)
         end_time = time.clock()
         print('epoch %d | loss: %.4f | accuracy: %.4f | using time: %.3f' % (
-        epoch, loss.data[0], accuracy, end_time - start_time))
+            epoch, loss.data[0], accuracy, end_time - start_time))
         save_parameters(cnn)
 
     fg = pyplot.figure()
@@ -184,3 +246,5 @@ else:
     accuracy = predict(cnn, test_data)
     print('accuracy: %.4f' % accuracy)
     save_parameters(cnn)
+
+from torchvision.models import resnet18
