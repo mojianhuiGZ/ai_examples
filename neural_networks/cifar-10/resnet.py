@@ -13,8 +13,9 @@ from matplotlib import pyplot
 import numpy as np
 
 CIFAR10_ROOT = 'cifar-10'
-#LR = 0.002
-LR = 0.02
+# LR = 0.002
+LR = 0.01
+
 BATCH_SIZE = 64
 EPOCH = 32
 PARAMS_FILE = 'resnet_params.pkl'
@@ -26,12 +27,9 @@ CUDA = torch.cuda.is_available()
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    #return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-    #                 padding=1, bias=True)
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
-from torchvision.models import resnet18
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -69,7 +67,6 @@ class ResNet(nn.Module):
     def __init__(self, block, layers):
         self.inplanes = 24
         super(ResNet, self).__init__()
-        #self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=True)
         self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(24)
         self.relu = nn.ReLU(inplace=True)
@@ -83,8 +80,6 @@ class ResNet(nn.Module):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                # nn.Conv2d(self.inplanes, planes * block.expansion,
-                #           kernel_size=3, stride=stride, padding=1, bias=True),
                 nn.Conv2d(self.inplanes, planes * block.expansion,
                           kernel_size=3, stride=stride, padding=1, bias=False),
                 nn.BatchNorm2d(planes * block.expansion),
@@ -145,13 +140,15 @@ train_data = datasets.CIFAR10(CIFAR10_ROOT, train=True, download=True, transform
     transforms.RandomCrop(32),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]))
 
 test_data = datasets.CIFAR10(CIFAR10_ROOT, train=False, download=True, transform=transforms.Compose([
     transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]))
 
-train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
+train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 
 print('Load CIFAR10 train data OK. data size is {}'.format(tuple(train_data.train_data.shape)))
 print('Load CIFAR10 test data OK. data size is {}'.format(tuple(test_data.test_data.shape)))
@@ -184,9 +181,7 @@ if is_show == 'Y' or is_show == 'y':
 
 # training
 
-# parameter count = 562666
-cnn = ResNet(BasicBlock, [2, 2, 2])
-#cnn = ResNet(BasicBlock, [1, 1, 1])
+cnn = ResNet(BasicBlock, [6, 6, 6])
 if CUDA:
     cnn = cnn.cuda()
 print('CNN architecture:\n{}'.format(cnn))
@@ -210,13 +205,10 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
         cnn.train(True)
         for step, (x, y) in enumerate(train_data_loader):
             if CUDA:
-                x = x.cuda(async=True)
-                y = y.cuda(async=True)
+                x = x.cuda()
+                y = y.cuda()
             xv = Variable(x)
             yv = Variable(y)
-            #if CUDA:
-            #    xv = xv.cuda()
-            #    yv = yv.cuda()
             output = cnn(xv)
             loss = loss_func(output, yv)
             losses.append(loss.data[0])
@@ -246,5 +238,3 @@ else:
     accuracy = predict(cnn, test_data)
     print('accuracy: %.4f' % accuracy)
     save_parameters(cnn)
-
-from torchvision.models import resnet18

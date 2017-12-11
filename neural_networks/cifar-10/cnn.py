@@ -82,9 +82,9 @@ def save_parameters(cnn):
 # prepare train and test data
 
 train_data = datasets.CIFAR10(CIFAR10_ROOT, train=True, download=True, transform=transforms.Compose([
-    # transforms.Pad(4),
-    # transforms.RandomCrop(32),
-    # transforms.RandomHorizontalFlip(),
+    transforms.Pad(4),
+    transforms.RandomCrop(32),
+    transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 ]))
