@@ -10,17 +10,18 @@ from torch.nn import functional
 from torch import optim
 from torch.autograd import Variable
 from matplotlib import pyplot
-import numpy as np
 
 CIFAR10_ROOT = 'cifar-10'
-# LR = 0.002
 LR = 0.01
-
 BATCH_SIZE = 64
 EPOCH = 32
-PARAMS_FILE = 'resnet_params.pkl'
-FIGURE_FILE = 'resnet_loss.png'
 CUDA = torch.cuda.is_available()
+INPUT_FEATURES = 24
+RESNET_BLOCKS = [4, 4, 4]
+PARAMS_FILE = 'resnet_params-{}-{}_{}_{}.pkl'.format(INPUT_FEATURES, RESNET_BLOCKS[0], RESNET_BLOCKS[1],
+                                                     RESNET_BLOCKS[2])
+FIGURE_FILE = 'resnet_loss-{}-{}_{}_{}.png'.format(INPUT_FEATURES, RESNET_BLOCKS[0], RESNET_BLOCKS[1],
+                                                   RESNET_BLOCKS[2])
 
 
 # ResNet
@@ -65,16 +66,16 @@ class BasicBlock(nn.Module):
 
 class ResNet(nn.Module):
     def __init__(self, block, layers):
-        self.inplanes = 24
+        self.inplanes = INPUT_FEATURES
         super(ResNet, self).__init__()
-        self.conv1 = nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(24)
+        self.conv1 = nn.Conv2d(3, INPUT_FEATURES, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(INPUT_FEATURES)
         self.relu = nn.ReLU(inplace=True)
-        self.layer1 = self._make_layer(block, 24, layers[0])
-        self.layer2 = self._make_layer(block, 48, layers[1], stride=2)
-        self.layer3 = self._make_layer(block, 96, layers[1], stride=2)
+        self.layer1 = self._make_layer(block, INPUT_FEATURES, layers[0])
+        self.layer2 = self._make_layer(block, INPUT_FEATURES * 2, layers[1], stride=2)
+        self.layer3 = self._make_layer(block, INPUT_FEATURES * 4, layers[2], stride=2)
         self.avgpool = nn.AvgPool2d(8)
-        self.fc = nn.Linear(96 * block.expansion, 10)
+        self.fc = nn.Linear(INPUT_FEATURES * 4 * block.expansion, 10)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
@@ -181,7 +182,7 @@ if is_show == 'Y' or is_show == 'y':
 
 # training
 
-cnn = ResNet(BasicBlock, [6, 6, 6])
+cnn = ResNet(BasicBlock, RESNET_BLOCKS)
 if CUDA:
     cnn = cnn.cuda()
 print('CNN architecture:\n{}'.format(cnn))

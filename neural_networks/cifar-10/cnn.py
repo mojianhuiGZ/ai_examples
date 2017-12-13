@@ -10,15 +10,15 @@ from torch.nn import functional
 from torch import optim
 from torch.autograd import Variable
 from matplotlib import pyplot
-import numpy as np
 
 CIFAR10_ROOT = 'cifar-10'
 LR = 0.01
 BATCH_SIZE = 64
 EPOCH = 32
+CUDA = torch.cuda.is_available()
+INPUT_FEATURES = 24
 PARAMS_FILE = 'resnet_params.pkl'
 FIGURE_FILE = 'resnet_loss.png'
-CUDA = torch.cuda.is_available()
 
 
 # CNN
@@ -32,20 +32,20 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 24, kernel_size=5, stride=1, padding=2, bias=False),
-            nn.BatchNorm2d(24),
+            nn.Conv2d(3, INPUT_FEATURES, kernel_size=5, stride=1, padding=2, bias=False),
+            nn.BatchNorm2d(INPUT_FEATURES),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         )
 
         self.conv2 = nn.Sequential(
-            nn.Conv2d(24, 48, kernel_size=5, stride=1, padding=2, bias=False),
-            nn.BatchNorm2d(48),
+            nn.Conv2d(INPUT_FEATURES, INPUT_FEATURES * 2, kernel_size=5, stride=1, padding=2, bias=False),
+            nn.BatchNorm2d(INPUT_FEATURES * 2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
         )
 
-        self.fc1 = nn.Linear(48 * 8 * 8, 10)
+        self.fc1 = nn.Linear(INPUT_FEATURES * 2 * 8 * 8, 10)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -151,8 +151,8 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
         cnn.train(True)
         for step, (x, y) in enumerate(train_data_loader):
             if CUDA:
-                x = x.cuda(async=True)
-                y = y.cuda(async=True)
+                x = x.cuda()
+                y = y.cuda()
             xv = Variable(x)
             yv = Variable(y)
             output = cnn(xv)
@@ -166,7 +166,7 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
         accuracy = predict(cnn, test_data)
         end_time = time.clock()
         print('epoch %d | loss: %.4f | accuracy: %.4f | using time: %.3f' % (
-        epoch, loss.data[0], accuracy, end_time - start_time))
+            epoch, loss.data[0], accuracy, end_time - start_time))
         save_parameters(cnn)
 
     fg = pyplot.figure()
