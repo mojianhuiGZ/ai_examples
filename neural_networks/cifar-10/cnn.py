@@ -17,8 +17,8 @@ BATCH_SIZE = 64
 EPOCH = 32
 CUDA = torch.cuda.is_available()
 INPUT_FEATURES = 24
-PARAMS_FILE = 'resnet_params.pkl'
-FIGURE_FILE = 'resnet_loss.png'
+PARAMS_FILE = 'cnn_params.pkl'
+FIGURE_FILE = 'cnn_loss.png'
 
 
 # CNN

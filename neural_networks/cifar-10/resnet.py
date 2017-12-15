@@ -17,7 +17,7 @@ BATCH_SIZE = 64
 EPOCH = 32
 CUDA = torch.cuda.is_available()
 INPUT_FEATURES = 24
-RESNET_BLOCKS = [4, 4, 4]
+RESNET_BLOCKS = [4, 6, 3]
 PARAMS_FILE = 'resnet_params-{}-{}_{}_{}.pkl'.format(INPUT_FEATURES, RESNET_BLOCKS[0], RESNET_BLOCKS[1],
                                                      RESNET_BLOCKS[2])
 FIGURE_FILE = 'resnet_loss-{}-{}_{}_{}.png'.format(INPUT_FEATURES, RESNET_BLOCKS[0], RESNET_BLOCKS[1],
@@ -54,6 +54,45 @@ class BasicBlock(nn.Module):
 
         out = self.conv2(out)
         out = self.bn2(out)
+
+        if self.downsample is not None:
+            residual = self.downsample(x)
+
+        out += residual
+        out = self.relu(out)
+
+        return out
+
+
+class Bottleneck(nn.Module):
+    expansion = 4
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None):
+        super(Bottleneck, self).__init__()
+        self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
+                               padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
+        self.bn3 = nn.BatchNorm2d(planes * 4)
+        self.relu = nn.ReLU(inplace=True)
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        residual = x
+
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.relu(out)
+
+        out = self.conv3(out)
+        out = self.bn3(out)
 
         if self.downsample is not None:
             residual = self.downsample(x)
@@ -183,6 +222,7 @@ if is_show == 'Y' or is_show == 'y':
 # training
 
 cnn = ResNet(BasicBlock, RESNET_BLOCKS)
+#cnn = ResNet(Bottleneck, RESNET_BLOCKS)
 if CUDA:
     cnn = cnn.cuda()
 print('CNN architecture:\n{}'.format(cnn))
@@ -202,9 +242,11 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
     if CUDA:
         loss_func = loss_func.cuda()
     for epoch in range(EPOCH):
-        start_time = time.clock()
+        epoch_start_time = time.clock()
         cnn.train(True)
         for step, (x, y) in enumerate(train_data_loader):
+            step_start_time = time.clock()
+
             if CUDA:
                 x = x.cuda()
                 y = y.cuda()
@@ -217,11 +259,14 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
             loss.backward()
             optimizer.step()
 
+            step_end_time = time.clock()
+            print('epoch %d | loss: %.4f | using time: %.3f' % (epoch, loss.data[0], step_end_time - step_start_time))
+
         cnn.train(False)
         accuracy = predict(cnn, test_data)
-        end_time = time.clock()
+        epoch_end_time = time.clock()
         print('epoch %d | loss: %.4f | accuracy: %.4f | using time: %.3f' % (
-            epoch, loss.data[0], accuracy, end_time - start_time))
+            epoch, loss.data[0], accuracy, epoch_end_time - epoch_start_time))
         save_parameters(cnn)
 
     fg = pyplot.figure()
