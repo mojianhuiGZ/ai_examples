@@ -14,7 +14,7 @@ from matplotlib import pyplot
 CIFAR10_ROOT = 'cifar-10'
 LR = 0.01
 BATCH_SIZE = 64
-EPOCH = 32
+EPOCH = 320
 #CUDA = torch.cuda.is_available()
 CUDA = False
 INPUT_FEATURES = 24

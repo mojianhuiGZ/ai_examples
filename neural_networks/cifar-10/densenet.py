@@ -13,12 +13,13 @@ from matplotlib import pyplot
 from collections import OrderedDict
 
 CIFAR10_ROOT = 'cifar-10'
+MAX_LR = 0.1
 LR = 0.01
 BATCH_SIZE = 64
-EPOCH = 32
+EPOCH = 320
 CUDA = torch.cuda.is_available()
-INPUT_FEATURES = 24
-DENSENET_LAYERS = [6, 6, 6]
+INPUT_FEATURES = 16
+DENSENET_LAYERS = [3, 3, 3]
 PARAMS_FILE = 'densenet_params-{}-{}_{}_{}.pkl'.format(INPUT_FEATURES, DENSENET_LAYERS[0], DENSENET_LAYERS[1],
                                                      DENSENET_LAYERS[2])
 FIGURE_FILE = 'densenet_loss-{}-{}_{}_{}.png'.format(INPUT_FEATURES, DENSENET_LAYERS[0], DENSENET_LAYERS[1],
@@ -193,7 +194,7 @@ if is_show == 'Y' or is_show == 'y':
 # training
 
 model = DenseNet(num_init_features=INPUT_FEATURES, growth_rate=INPUT_FEATURES // 2,
-                 block_config=DENSENET_LAYERS, num_classes=10, drop_rate=0.2)
+                 block_config=DENSENET_LAYERS, num_classes=10, drop_rate=0)
 if CUDA:
     model = model.cuda()
 print('CNN architecture:\n{}'.format(model))
@@ -208,14 +209,23 @@ if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
 losses = []
 is_train = input('Train CNN [Y/n]?')
 if is_train == 'Y' or is_train == 'y' or is_train == '':
-    optimizer = optim.Adam(model.parameters(), lr=LR)
-    loss_func = nn.CrossEntropyLoss()
-    if CUDA:
-        loss_func = loss_func.cuda()
+
+    model.train(False)
+    accuracy = predict(model, test_data)
+    print('accuracy: %.4f | LR: %f' % (accuracy, LR))
+    max_accuracy = accuracy
+
     for epoch in range(EPOCH):
-        start_time = time.clock()
+        epoch_start_time = time.clock()
+
+        optimizer = optim.Adam(model.parameters(), lr=LR)
+        loss_func = nn.CrossEntropyLoss()
+        if CUDA:
+            loss_func = loss_func.cuda()
         model.train(True)
+
         for step, (x, y) in enumerate(train_data_loader):
+            step_start_time = time.clock()
             if CUDA:
                 x = x.cuda()
                 y = y.cuda()
@@ -227,13 +237,23 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            step_end_time = time.clock()
+            # print('step %d | loss is %.4f | using time: %.3f' % (step, loss.data[0], step_end_time - step_start_time))
 
         model.train(False)
         accuracy = predict(model, test_data)
-        end_time = time.clock()
-        print('epoch %d | loss: %.4f | accuracy: %.4f | using time: %.3f' % (
-            epoch, loss.data[0], accuracy, end_time - start_time))
-        save_parameters(model)
+        epoch_end_time = time.clock()
+        print('epoch %d | loss: %.4f | accuracy: %.4f | LR: %f | using time: %.3f' % (
+            epoch, loss.data[0], accuracy, LR, epoch_end_time - epoch_start_time))
+        if accuracy > max_accuracy:
+            max_accuracy = accuracy
+            save_parameters(model)
+            LR = LR * 2
+            if LR > MAX_LR:
+                LR = MAX_LR
+        elif accuracy < max_accuracy * 0.8:
+            LR = LR / 2
+            model.load_state_dict(torch.load(PARAMS_FILE))
 
     fg = pyplot.figure()
     fg.suptitle('loss curve')
