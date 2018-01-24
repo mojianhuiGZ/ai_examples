@@ -25,7 +25,7 @@ def main(model_name, **kwargs):
     if model_name.startswith('shufflenet'):
         transform_train = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
+            # transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     # main('resnet20', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet32', batch_size=BATCH_SIZE, cuda=True)
     # main('se-resnet20', batch_size=BATCH_SIZE, reduction=16, cuda=True)
-    main('se-resnet32', batch_size=BATCH_SIZE, reduction=16, cuda=True)
-    # main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=True)
+    # main('se-resnet32', batch_size=BATCH_SIZE, reduction=16, cuda=True)
+    main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=False)
     # main('shufflenet4', batch_size=BATCH_SIZE, groups=4, cuda=True)
     # main('shufflenet6', batch_size=BATCH_SIZE, groups=4, cuda=True)

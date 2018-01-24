@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import torch
+import time
 from torchvision import datasets, transforms
 from torch.utils import data
 import torch.nn as nn
@@ -14,7 +15,7 @@ import numpy as np
 MNIST_ROOT = 'mnist'
 LR = 0.001
 BATCH_SIZE = 50
-EPOCH = 1
+EPOCH = 10
 PARAMS_FILE = 'params.pkl'
 FIGURE_FILE = 'figure.png'
 
@@ -42,7 +43,7 @@ class CNN(nn.Module):
         x = self.conv2(x)
         x = x.view(x.size(0), -1)
         x = self.fc1(x)
-        return functional.softmax(x)
+        return x
 
 
 def predict(cnn, test_data):
@@ -50,7 +51,6 @@ def predict(cnn, test_data):
     pred_Y = []
     for i in range(len(test_data)):
         x = Variable(torch.unsqueeze(test_data[i][0], dim=0))
-        x = x - x.mean(dim=0)
         output = cnn(x)
         y = torch.max(output, 1)[1].data.squeeze()
         pred_Y.append(y[0])
@@ -60,7 +60,7 @@ def predict(cnn, test_data):
 
 
 def save_parameters(cnn):
-    print 'Save CNN parameters to %s' % (PARAMS_FILE)
+    print('Save CNN parameters to %s' % PARAMS_FILE)
     torch.save(cnn.state_dict(), PARAMS_FILE)
 
 
@@ -72,8 +72,8 @@ test_data = datasets.MNIST(MNIST_ROOT, train=False, download=True, transform=tra
 
 train_data_loader = data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 
-print 'Load MNIST train data OK. data size is {}'.format(tuple(train_data.train_data.size()))
-print 'Load MNIST test data OK. data size is {}'.format(tuple(test_data.test_data.size()))
+print('Load MNIST train data OK. data size is {}'.format(tuple(train_data.train_data.size())))
+print('Load MNIST test data OK. data size is {}'.format(tuple(test_data.test_data.size())))
 
 # show train and test images
 
@@ -102,7 +102,7 @@ if is_show == 'Y' or is_show == 'y':
 # training
 
 cnn = CNN()
-print 'CNN architecture:\n{}'.format(cnn)
+print('CNN architecture:\n{}'.format(cnn))
 
 is_load_params = raw_input('Load CNN parameters [Y/n]?')
 if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
@@ -117,8 +117,9 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
     optimizer = optim.Adam(cnn.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
     for epoch in range(EPOCH):
+        start_time = time.clock()
+        cnn.train(True)
         for step, (x, y) in enumerate(train_data_loader):
-            x = x - x.mean(dim=0)
             output = cnn(Variable(x))
             loss = loss_func(output, Variable(y))
             losses.append(loss.data[0])
@@ -126,22 +127,17 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
             loss.backward()
             optimizer.step()
 
+        cnn.train(False)
         accuracy = predict(cnn, test_data)
-        print 'epoch %d | accuracy: %.4f' % (epoch, accuracy)
+        end_time = time.clock()
+        print('epoch %d | loss: %.4f | accuracy: %.4f | using time: %.3f' % (
+            epoch, loss.data[0], accuracy, end_time - start_time))
         save_parameters(cnn)
-
-    fg = pyplot.figure()
-    fg.suptitle('loss curve')
-    loss_curve, = pyplot.plot(losses, c='r')
-    pyplot.grid(True)
-    pyplot.savefig(FIGURE_FILE)
-    is_show = raw_input('Show loss curve [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        pyplot.show(fg)
-    pyplot.close(fg)
 
 # test
 
+cnn.train(False)
 accuracy = predict(cnn, test_data)
-print 'accuracy: %.4f' % (accuracy)
+print('accuracy: %.4f' % (accuracy))
 save_parameters(cnn)
+

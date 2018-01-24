@@ -167,16 +167,6 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
             epoch, loss.data[0], accuracy, end_time - start_time))
         save_parameters(cnn)
 
-    fg = pyplot.figure()
-    fg.suptitle('loss curve')
-    loss_curve, = pyplot.plot(losses, c='r')
-    pyplot.grid(True)
-    pyplot.savefig(FIGURE_FILE)
-    is_show = input('Show loss curve [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        pyplot.show(fg)
-    pyplot.close(fg)
-
 else:
     cnn.train(False)
     accuracy = predict(cnn, test_data)
