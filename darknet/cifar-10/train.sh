@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DARKNET=/opt/darknet/darknet
+
 if [ -f "backup/cifar_small.backup" ]; then
     echo -n "Load CNN parameters [Y/n]? "
     read is_load_params
@@ -10,5 +12,5 @@ if [ -f "backup/cifar_small.backup" ]; then
     fi
 fi
 
-/opt/darknet/darknet classifier train cfg/cifar.data cfg/cifar_small.cfg
+$DARKNET classifier train cfg/cifar.data cfg/cifar_small.cfg
 
