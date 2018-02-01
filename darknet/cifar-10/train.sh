@@ -1,6 +1,8 @@
 #!/bin/bash
 
-DARKNET=/opt/darknet/darknet
+#DARKNET=/opt/darknet/darknet
+#DARKNET=/mnt/data1/projects/darknet/darknet
+DARKNET=/cygdrive/d/my/darknet/darknet
 
 if [ -f "backup/cifar_small.backup" ]; then
     echo -n "Load CNN parameters [Y/n]? "

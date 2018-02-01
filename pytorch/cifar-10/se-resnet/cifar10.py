@@ -7,10 +7,14 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision import datasets, transforms
 from matplotlib import pyplot
+from cnn import cnn1, cnn3, cnn5, cnn7
+from cnn import leaky_relu_cnn1, leaky_relu_cnn3, leaky_relu_cnn5, leaky_relu_cnn7
+from cnn import prelu_cnn1, prelu_cnn3, prelu_cnn5, prelu_cnn7
+from mobilenet import mobile_net1, mobile_net3, mobile_net5, mobile_net7
 from se_resnet import se_resnet20, se_resnet32
 from resnet import resnet20, resnet32
 from utils import Trainer
-from shufflenet import shufflenet_cifar10_3, shufflenet_cifar10_4, shufflenet_cifar10_6
+from shufflenet import shufflenet_cifar10_1, shufflenet_cifar10_3, shufflenet_cifar10_4, shufflenet_cifar10_6
 
 CIFAR10_ROOT = '../cifar-10'
 BATCH_SIZE = 64
@@ -25,7 +29,7 @@ def main(model_name, **kwargs):
     if model_name.startswith('shufflenet'):
         transform_train = transforms.Compose([
             transforms.RandomHorizontalFlip(),
-            # transforms.RandomVerticalFlip(),
+            transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ])
@@ -79,7 +83,39 @@ def main(model_name, **kwargs):
 
     # training
 
-    if model_name == 'resnet20':
+    if model_name == 'cnn1':
+        model = cnn1()
+    elif model_name == 'cnn3':
+        model = cnn3()
+    elif model_name == 'cnn5':
+        model = cnn5()
+    elif model_name == 'cnn7':
+        model = cnn7()
+    elif model_name == 'leaky_relu_cnn1':
+        model = leaky_relu_cnn1()
+    elif model_name == 'leaky_relu_cnn3':
+        model = leaky_relu_cnn3()
+    elif model_name == 'leaky_relu_cnn5':
+        model = leaky_relu_cnn5()
+    elif model_name == 'leaky_relu_cnn7':
+        model = leaky_relu_cnn7()
+    elif model_name == 'prelu_cnn1':
+        model = prelu_cnn1()
+    elif model_name == 'prelu_cnn3':
+        model = prelu_cnn3()
+    elif model_name == 'prelu_cnn5':
+        model = prelu_cnn5()
+    elif model_name == 'prelu_cnn7':
+        model = prelu_cnn7()
+    elif model_name == 'mobile_net1':
+        model = mobile_net1()
+    elif model_name == 'mobile_net3':
+        model = mobile_net3()
+    elif model_name == 'mobile_net5':
+        model = mobile_net5()
+    elif model_name == 'mobile_net7':
+        model = mobile_net7()
+    elif model_name == 'resnet20':
         model = resnet20()
     elif model_name == 'resnet32':
         model = resnet32()
@@ -87,6 +123,8 @@ def main(model_name, **kwargs):
         model = se_resnet20(num_classes=10, reduction=kwargs['reduction'])
     elif model_name == 'se-resnet32':
         model = se_resnet32(num_classes=10, reduction=kwargs['reduction'])
+    elif model_name == 'shufflenet1':
+        model = shufflenet_cifar10_1(groups=kwargs['groups'])
     elif model_name == 'shufflenet3':
         model = shufflenet_cifar10_3(groups=kwargs['groups'])
     elif model_name == 'shufflenet4':
@@ -114,10 +152,27 @@ def main(model_name, **kwargs):
 
 
 if __name__ == '__main__':
+    # main('cnn1', batch_size=BATCH_SIZE, cuda=True)
+    # main('cnn3', batch_size=BATCH_SIZE, cuda=True)
+    # main('cnn5', batch_size=BATCH_SIZE, cuda=True)
+    # main('cnn7', batch_size=BATCH_SIZE, cuda=True)
+    # main('leaky_relu_cnn1', batch_size=BATCH_SIZE, cuda=True)
+    # main('leaky_relu_cnn3', batch_size=BATCH_SIZE, cuda=True)
+    # main('leaky_relu_cnn5', batch_size=BATCH_SIZE, cuda=True)
+    # main('leaky_relu_cnn7', batch_size=BATCH_SIZE, cuda=True)
+    # main('prelu_cnn1', batch_size=BATCH_SIZE, cuda=True)
+    # main('prelu_cnn3', batch_size=BATCH_SIZE, cuda=True)
+    # main('prelu_cnn5', batch_size=BATCH_SIZE, cuda=True)
+    # main('prelu_cnn7', batch_size=BATCH_SIZE, cuda=True)
+    # main('mobile_net1', batch_size=BATCH_SIZE, cuda=True)
+    # main('mobile_net3', batch_size=BATCH_SIZE, cuda=True)
+    # main('mobile_net5', batch_size=BATCH_SIZE, cuda=True)
+    # main('mobile_net7', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet20', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet32', batch_size=BATCH_SIZE, cuda=True)
     # main('se-resnet20', batch_size=BATCH_SIZE, reduction=16, cuda=True)
     # main('se-resnet32', batch_size=BATCH_SIZE, reduction=16, cuda=True)
-    main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=False)
+    main('shufflenet1', batch_size=BATCH_SIZE, groups=4, cuda=True)
+    #  main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=True)
     # main('shufflenet4', batch_size=BATCH_SIZE, groups=4, cuda=True)
     # main('shufflenet6', batch_size=BATCH_SIZE, groups=4, cuda=True)

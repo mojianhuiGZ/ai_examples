@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+from __future__ import print_function
 import torch
 import time
 from torchvision import datasets, transforms
 from torch.utils import data
 import torch.nn as nn
-from torch.nn import functional
 from torch import optim
 from torch.autograd import Variable
 from matplotlib import pyplot
-import numpy as np
+
 
 MNIST_ROOT = 'mnist'
 LR = 0.001
@@ -77,7 +77,7 @@ print('Load MNIST test data OK. data size is {}'.format(tuple(test_data.test_dat
 
 # show train and test images
 
-is_show = raw_input('Show train images [y/N]?')
+is_show = ('Show train images [y/N]?')
 if is_show == 'Y' or is_show == 'y':
     fg = pyplot.figure()
     fg.suptitle('Train Images')
@@ -88,7 +88,7 @@ if is_show == 'Y' or is_show == 'y':
         pyplot.imshow(train_data.train_data[i].numpy(), cmap='gray')
     pyplot.show()
 
-is_show = raw_input('Show test images [y/N]?')
+is_show = input('Show test images [y/N]?')
 if is_show == 'Y' or is_show == 'y':
     fg = pyplot.figure()
     fg.suptitle('Test Images')
@@ -104,7 +104,7 @@ if is_show == 'Y' or is_show == 'y':
 cnn = CNN()
 print('CNN architecture:\n{}'.format(cnn))
 
-is_load_params = raw_input('Load CNN parameters [Y/n]?')
+is_load_params = input('Load CNN parameters [Y/n]?')
 if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
     try:
         cnn.load_state_dict(torch.load(PARAMS_FILE))
@@ -112,7 +112,7 @@ if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
         pass
 
 losses = []
-is_train = raw_input('Train CNN [Y/n]?')
+is_train = input('Train CNN [Y/n]?')
 if is_train == 'Y' or is_train == 'y' or is_train == '':
     optimizer = optim.Adam(cnn.parameters(), lr=LR)
     loss_func = nn.CrossEntropyLoss()
@@ -138,6 +138,6 @@ if is_train == 'Y' or is_train == 'y' or is_train == '':
 
 cnn.train(False)
 accuracy = predict(cnn, test_data)
-print('accuracy: %.4f' % (accuracy))
+print('accuracy: %.4f' % accuracy)
 save_parameters(cnn)
 

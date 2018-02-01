@@ -148,6 +148,11 @@ class ShuffleNetCifar10(nn.Module):
         return x
 
 
+def shufflenet_cifar10_1(groups=4):
+    model = ShuffleNetCifar10(1, groups=groups)
+    return model
+
+
 def shufflenet_cifar10_3(groups=4):
     model = ShuffleNetCifar10(3, groups=groups)
     return model
