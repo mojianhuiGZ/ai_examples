@@ -6,18 +6,20 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision import datasets, transforms
-from matplotlib import pyplot
+# from matplotlib import pyplot
 from cnn import cnn1, cnn3, cnn5, cnn7
 from cnn import leaky_relu_cnn1, leaky_relu_cnn3, leaky_relu_cnn5, leaky_relu_cnn7
 from cnn import prelu_cnn1, prelu_cnn3, prelu_cnn5, prelu_cnn7
 from mobilenet import mobile_net1, mobile_net3, mobile_net5, mobile_net7
 from se_resnet import se_resnet20, se_resnet32
-from resnet import resnet20, resnet32
-from utils import Trainer
+from resnet import resnet20, resnet32, preact_resnet20, preact_resnet32
 from shufflenet import shufflenet_cifar10_1, shufflenet_cifar10_3, shufflenet_cifar10_4, shufflenet_cifar10_6
+from densenet import densenet1, densenet3, densenet5, densenet7
+from utils import Trainer
+
 
 CIFAR10_ROOT = '../cifar-10'
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 EPOCHS = 300
 
 
@@ -25,22 +27,14 @@ def main(model_name, **kwargs):
     batch_size = kwargs['batch_size']
     cuda = kwargs['cuda']
 
-    transform_train = None
-    if model_name.startswith('shufflenet'):
-        transform_train = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
-    else:
-        transform_train = transforms.Compose([
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-        ])
+    transform_train = transforms.Compose([
+        # transforms.RandomCrop(32, padding=4),
+        transforms.ColorJitter(0.75, 0.75, 0.75, 0.1),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
 
     transform_test = transforms.Compose([
         transforms.ToTensor(),
@@ -59,27 +53,27 @@ def main(model_name, **kwargs):
 
     # show train and test images
 
-    is_show = input('Show train images [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        fg = pyplot.figure()
-        fg.suptitle('Train Images')
-        for i in range(16):
-            ax = pyplot.subplot(2, 8, i + 1)
-            ax.set_title('{}'.format(train_data.train_labels[i]))
-            ax.axis('off')
-            pyplot.imshow(train_data.train_data[i])
-        pyplot.show()
+    # is_show = input('Show train images [y/N]?')
+    # if is_show == 'Y' or is_show == 'y':
+    #     fg = pyplot.figure()
+    #     fg.suptitle('Train Images')
+    #     for i in range(16):
+    #         ax = pyplot.subplot(2, 8, i + 1)
+    #         ax.set_title('{}'.format(train_data.train_labels[i]))
+    #         ax.axis('off')
+    #         pyplot.imshow(train_data.train_data[i])
+    #     pyplot.show()
 
-    is_show = input('Show test images [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        fg = pyplot.figure()
-        fg.suptitle('Test Images')
-        for i in range(16):
-            ax = pyplot.subplot(2, 8, i + 1)
-            ax.set_title('{}'.format(test_data.test_labels[i]))
-            ax.axis('off')
-            pyplot.imshow(test_data.test_data[i])
-        pyplot.show()
+    # is_show = input('Show test images [y/N]?')
+    # if is_show == 'Y' or is_show == 'y':
+    #     fg = pyplot.figure()
+    #     fg.suptitle('Test Images')
+    #     for i in range(16):
+    #         ax = pyplot.subplot(2, 8, i + 1)
+    #         ax.set_title('{}'.format(test_data.test_labels[i]))
+    #         ax.axis('off')
+    #         pyplot.imshow(test_data.test_data[i])
+    #     pyplot.show()
 
     # training
 
@@ -119,6 +113,10 @@ def main(model_name, **kwargs):
         model = resnet20()
     elif model_name == 'resnet32':
         model = resnet32()
+    elif model_name == 'preact_resnet20':
+        model = preact_resnet20()
+    elif model_name == 'preact_resnet32':
+        model = preact_resnet32()
     elif model_name == 'se-resnet20':
         model = se_resnet20(num_classes=10, reduction=kwargs['reduction'])
     elif model_name == 'se-resnet32':
@@ -131,6 +129,14 @@ def main(model_name, **kwargs):
         model = shufflenet_cifar10_4(groups=kwargs['groups'])
     elif model_name == 'shufflenet6':
         model = shufflenet_cifar10_6(groups=kwargs['groups'])
+    elif model_name == 'densenet1':
+        model = densenet1()
+    elif model_name == 'densenet3':
+        model = densenet3()
+    elif model_name == 'densenet5':
+        model = densenet5()
+    elif model_name == 'densenet7':
+        model = densenet7()
 
     print('model name:%s' % model_name)
     print('model architecture:\n{}'.format(model))
@@ -152,7 +158,7 @@ def main(model_name, **kwargs):
 
 
 if __name__ == '__main__':
-    # main('cnn1', batch_size=BATCH_SIZE, cuda=True)
+    main('cnn1', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn3', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn5', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn7', batch_size=BATCH_SIZE, cuda=True)
@@ -170,9 +176,15 @@ if __name__ == '__main__':
     # main('mobile_net7', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet20', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet32', batch_size=BATCH_SIZE, cuda=True)
+    # main('preact_resnet20', batch_size=BATCH_SIZE, cuda=True)
+    # main('preact_resnet32', batch_size=BATCH_SIZE, cuda=True)
     # main('se-resnet20', batch_size=BATCH_SIZE, reduction=16, cuda=True)
     # main('se-resnet32', batch_size=BATCH_SIZE, reduction=16, cuda=True)
-    main('shufflenet1', batch_size=BATCH_SIZE, groups=4, cuda=True)
-    #  main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=True)
+    # main('shufflenet1', batch_size=BATCH_SIZE, groups=4, cuda=True)
+    # main('shufflenet3', batch_size=BATCH_SIZE, groups=4, cuda=True)
     # main('shufflenet4', batch_size=BATCH_SIZE, groups=4, cuda=True)
     # main('shufflenet6', batch_size=BATCH_SIZE, groups=4, cuda=True)
+    # main('densenet1', batch_size=BATCH_SIZE, cuda=True)
+    # main('densenet3', batch_size=BATCH_SIZE, cuda=True)
+    # main('densenet5', batch_size=BATCH_SIZE, cuda=True)
+    # main('densenet7', batch_size=BATCH_SIZE, cuda=True)
