@@ -15,6 +15,7 @@ from se_resnet import se_resnet20, se_resnet32
 from resnet import resnet20, resnet32, preact_resnet20, preact_resnet32
 from shufflenet import shufflenet_cifar10_1, shufflenet_cifar10_3, shufflenet_cifar10_4, shufflenet_cifar10_6
 from densenet import densenet1, densenet3, densenet5, densenet7
+from deformable_cnn import dcn1, dcn3, dcn5
 from utils import Trainer
 
 CIFAR10_ROOT = '../data'
@@ -145,6 +146,12 @@ def main(model_name, **kwargs):
         model = densenet5()
     elif model_name == 'densenet7':
         model = densenet7()
+    elif model_name == 'dcn1':
+        model = dcn1()
+    elif model_name == 'dcn3':
+        model = dcn3()
+    elif model_name == 'dcn5':
+        model = dcn5()
 
     print('model name:%s' % model_name)
     print('model architecture:\n{}'.format(model))
@@ -184,7 +191,7 @@ if __name__ == '__main__':
     # main('mobile_net7', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet20', batch_size=BATCH_SIZE, cuda=True)
     # main('resnet32', batch_size=BATCH_SIZE, cuda=True)
-    main('preact_resnet20', batch_size=BATCH_SIZE, cuda=True)
+    # main('preact_resnet20', batch_size=BATCH_SIZE, cuda=True)
     # main('preact_resnet32', batch_size=BATCH_SIZE, cuda=True)
     # main('se-resnet20', batch_size=BATCH_SIZE, reduction=16, cuda=True)
     # main('se-resnet32', batch_size=BATCH_SIZE, reduction=16, cuda=True)
@@ -196,3 +203,6 @@ if __name__ == '__main__':
     # main('densenet3', batch_size=BATCH_SIZE, cuda=True)
     # main('densenet5', batch_size=BATCH_SIZE, cuda=True)
     # main('densenet7', batch_size=BATCH_SIZE, cuda=True)
+    main('dcn1', batch_size=BATCH_SIZE, cuda=True)
+    # main('dcn3', batch_size=BATCH_SIZE, cuda=True)
+    # main('dcn5', batch_size=BATCH_SIZE, cuda=True)

@@ -40,9 +40,9 @@ class CNNReLU(nn.Module):
     def build_layer(self, in_channels, layer_size, downsample):
         blocks = []
         if downsample:
-            blocks.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
-            blocks.append(nn.Conv2d(in_channels, in_channels * 2, kernel_size=3, stride=1, padding=1, bias=False))
-            # blocks.append(nn.Conv2d(in_channels, in_channels * 2, kernel_size=3, stride=2, padding=1, bias=False))
+            # blocks.append(nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+            # blocks.append(nn.Conv2d(in_channels, in_channels * 2, kernel_size=3, stride=1, padding=1, bias=False))
+            blocks.append(nn.Conv2d(in_channels, in_channels * 2, kernel_size=3, stride=2, padding=1, bias=False))
             blocks.append(nn.BatchNorm2d(in_channels * 2))
             blocks.append(nn.ReLU(inplace=True))
             in_channels = in_channels * 2
