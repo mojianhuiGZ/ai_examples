@@ -62,7 +62,7 @@ class Trainer(object):
         self.model.eval()
         return self._loop(data_loader, is_train=False, show_step_time=False)
 
-    def loop(self, epochs, train_data, test_data):
+    def loop(self, epochs, min_lr, train_data, test_data):
         _, max_accuracy = self.test(test_data)
         train_accuracies = []
 
@@ -84,6 +84,8 @@ class Trainer(object):
 
             if len(train_accuracies) == self.epoches_per_average_accuracy:
                 self.scheduler.step(last_average_accuracy, epoch=ep)
+                if self.optimizer.param_groups[0]['lr'] < min_lr:
+                    break
 
     def save(self):
         print('Save model training parameters to %s' % self.save_file)
@@ -91,6 +93,10 @@ class Trainer(object):
         torch.save(train_state, self.save_file)
 
     def load(self):
-        train_state = torch.load(self.save_file)
-        print('Load model training parameters from %s' % self.save_file)
-        self.model.load_state_dict(train_state['model'])
+        try:
+            train_state = torch.load(self.save_file)
+            print('Load model training parameters from %s' % self.save_file)
+            self.model.load_state_dict(train_state['model'])
+        except:
+            pass
+

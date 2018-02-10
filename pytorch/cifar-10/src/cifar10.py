@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import sys
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision import datasets, transforms
-from matplotlib import pyplot
+#from matplotlib import pyplot
 from cnn import cnn1, cnn3, cnn5, cnn7
 from cnn import leaky_relu_cnn1, leaky_relu_cnn3, leaky_relu_cnn5, leaky_relu_cnn7
 from cnn import prelu_cnn1, prelu_cnn3, prelu_cnn5, prelu_cnn7
@@ -20,7 +21,8 @@ from utils import Trainer
 
 CIFAR10_ROOT = '../data'
 BATCH_SIZE = 128
-EPOCHS = 300
+EPOCHS = 500
+MIN_LR = 1e-6
 
 
 def main(model_name, **kwargs):
@@ -60,29 +62,29 @@ def main(model_name, **kwargs):
 
     # show train and test images
 
-    is_show = input('Show train images [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        fg = pyplot.figure()
-        fg.suptitle('Train Images')
-        for i in range(32):
-            ax = pyplot.subplot(4, 8, i + 1)
-            ax.set_title('{}'.format(train_data.train_labels[i]))
-            ax.axis('off')
-            img = transforms.ToPILImage()(train_data.train_data[i])
-            img1 = augment_transform(img)
-            pyplot.imshow(img1)
-        pyplot.show()
-
-    is_show = input('Show test images [y/N]?')
-    if is_show == 'Y' or is_show == 'y':
-        fg = pyplot.figure()
-        fg.suptitle('Test Images')
-        for i in range(32):
-            ax = pyplot.subplot(4, 8, i + 1)
-            ax.set_title('{}'.format(test_data.test_labels[i]))
-            ax.axis('off')
-            pyplot.imshow(test_data.test_data[i])
-        pyplot.show()
+#    is_show = input('Show train images [y/N]?')
+#    if is_show == 'Y' or is_show == 'y':
+#        fg = pyplot.figure()
+#        fg.suptitle('Train Images')
+#        for i in range(32):
+#            ax = pyplot.subplot(4, 8, i + 1)
+#            ax.set_title('{}'.format(train_data.train_labels[i]))
+#            ax.axis('off')
+#            img = transforms.ToPILImage()(train_data.train_data[i])
+#            img1 = augment_transform(img)
+#            pyplot.imshow(img1)
+#        pyplot.show()
+#
+#    is_show = input('Show test images [y/N]?')
+#    if is_show == 'Y' or is_show == 'y':
+#        fg = pyplot.figure()
+#        fg.suptitle('Test Images')
+#        for i in range(32):
+#            ax = pyplot.subplot(4, 8, i + 1)
+#            ax.set_title('{}'.format(test_data.test_labels[i]))
+#            ax.axis('off')
+#            pyplot.imshow(test_data.test_data[i])
+#        pyplot.show()
 
     # training
 
@@ -160,19 +162,20 @@ def main(model_name, **kwargs):
 
     optimizer = optim.SGD(params=model.parameters(), lr=1e-1, momentum=0.9,
                           weight_decay=1e-4)
-    scheduler = ReduceLROnPlateau(optimizer, 'max', factor=0.5, patience=0, verbose=True,
-                                  threshold=1e-3, threshold_mode="abs", cooldown=3, eps=1e-6)
+    scheduler = ReduceLROnPlateau(optimizer, 'max', factor=0.1, patience=0, verbose=True,
+                                  threshold=1e-4, threshold_mode="abs", cooldown=10)
     trainer = Trainer(model, optimizer, F.cross_entropy, scheduler, save_file,
                       epoches_per_average_accuracy=10, cuda=cuda)
 
-    is_load_params = input('Load CNN training parameters [Y/n]?')
-    if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
-        trainer.load()
+#    is_load_params = input('Load CNN training parameters [Y/n]?')
+#    if is_load_params == 'Y' or is_load_params == 'y' or is_load_params == '':
+    trainer.load()
 
-    trainer.loop(EPOCHS, train_loader, test_loader)
+    trainer.loop(EPOCHS, MIN_LR, train_loader, test_loader)
 
 
 if __name__ == '__main__':
+    main(sys.argv[1], batch_size=BATCH_SIZE, cuda=True)
     # main('cnn1', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn3', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn5', batch_size=BATCH_SIZE, cuda=True)
@@ -203,6 +206,6 @@ if __name__ == '__main__':
     # main('densenet3', batch_size=BATCH_SIZE, cuda=True)
     # main('densenet5', batch_size=BATCH_SIZE, cuda=True)
     # main('densenet7', batch_size=BATCH_SIZE, cuda=True)
-    main('dcn1', batch_size=BATCH_SIZE, cuda=True)
+    # main('dcn1', batch_size=BATCH_SIZE, cuda=True)
     # main('dcn3', batch_size=BATCH_SIZE, cuda=True)
     # main('dcn5', batch_size=BATCH_SIZE, cuda=True)
