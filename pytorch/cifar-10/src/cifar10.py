@@ -175,7 +175,7 @@ def main(model_name, **kwargs):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], batch_size=BATCH_SIZE, cuda=True)
+    main(sys.argv[1], batch_size=BATCH_SIZE, cuda=True, reduction=16, groups=4)
     # main('cnn1', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn3', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn5', batch_size=BATCH_SIZE, cuda=True)
