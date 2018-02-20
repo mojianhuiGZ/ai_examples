@@ -2,7 +2,7 @@
 # coding: utf-8
 
 from __future__ import absolute_import, division
-import os, shutil, subprocess
+import os, shutil, subprocess, time
 
 MODELS = [
 'cnn1',
@@ -40,7 +40,7 @@ MODELS = [
 'dcn5'
 ]
 
-CHILD_COUNT = 2
+CHILD_COUNT = 6
 
 def get_best_pkl(model):
     return 'cifar10-%s-best.pkl' % model
@@ -54,8 +54,11 @@ for m in MODELS:
         print('Found %s, copy to %s' % (get_best_pkl(m), get_current_pkl(m)))
         shutil.copyfile(get_best_pkl(m), get_current_pkl(m))
     while len(childs) >= CHILD_COUNT:
+        time.sleep(5)
         for child in childs:
-            if child['process'].poll():
+            if child['process'].poll() is None:
+                continue
+            else:
                 print('Copy %s to %s' % (get_current_pkl(child['model']), get_best_pkl(child['model'])))
                 shutil.copyfile(get_current_pkl(child['model']), get_best_pkl(child['model']))
                 childs.remove(child)
