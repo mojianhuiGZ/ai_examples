@@ -40,7 +40,7 @@ MODELS = [
 'dcn5'
 ]
 
-CHILD_COUNT = 6
+CHILD_COUNT = 8
 
 def get_best_pkl(model):
     return 'cifar10-%s-best.pkl' % model
