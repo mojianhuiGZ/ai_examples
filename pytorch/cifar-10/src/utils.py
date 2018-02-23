@@ -5,6 +5,7 @@ from __future__ import absolute_import, division
 
 import time
 import torch
+import logging
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -43,13 +44,13 @@ class Trainer(object):
                 self.optimizer.step()
             step_end_time = time.clock()
             if show_step_time:
-                print('step %d | loss is %.4f | using time: %.3f' % (step, loss.data[0],
+                logging.info('step %d | loss is %.4f | using time: %.3f' % (step, loss.data[0],
                                                                      step_end_time - step_start_time))
         epoch_end_time = time.clock()
         mode = "train | epoch %d" % epoch if is_train else "test"
         loss = sum(losses) / len(data_loader)
         accurary = sum(accuracies) / len(data_loader.dataset)
-        print("%s | loss: %.4f | accuracy: %.4f | lr: %f | using time: %.3f" % (mode, loss, accurary,
+        logging.info("%s | loss: %.4f | accuracy: %.4f | lr: %f | using time: %.3f" % (mode, loss, accurary,
                                                                                 self.optimizer.param_groups[0]['lr'],
                                                                                 epoch_end_time - epoch_start_time))
         return loss, accurary
@@ -75,7 +76,7 @@ class Trainer(object):
                 last_average_accuracy = sum(train_accuracies) / self.epoches_per_average_accuracy
             else:
                 last_average_accuracy = train_accuracies[0]
-            print('last average accuracy is %.4f' % last_average_accuracy)
+            logging.info('last average accuracy is %.4f' % last_average_accuracy)
 
             _, accuracy = self.test(test_data)
             if accuracy > max_accuracy:
@@ -88,14 +89,14 @@ class Trainer(object):
                     break
 
     def save(self):
-        print('Save model training parameters to %s' % self.save_file)
+        logging.info('Save model training parameters to %s' % self.save_file)
         train_state = {'model': self.model.state_dict()}
         torch.save(train_state, self.save_file)
 
     def load(self):
         try:
             train_state = torch.load(self.save_file)
-            print('Load model training parameters from %s' % self.save_file)
+            logging.info('Load model training parameters from %s' % self.save_file)
             self.model.load_state_dict(train_state['model'])
         except:
             pass

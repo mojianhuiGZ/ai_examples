@@ -3,6 +3,7 @@
 
 import sys
 import torch
+import logging
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -28,6 +29,18 @@ MIN_LR = 1e-6
 def main(model_name, **kwargs):
     batch_size = kwargs['batch_size']
     cuda = kwargs['cuda']
+    logfile = kwargs['logfile']
+
+    logging.basicConfig(level=logging.DEBUG,
+            format='%(asctime)s %(levelname)s: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S',
+            filename=logfile,
+            filemode='a')
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger('').addHandler(console)
 
     augment_transform = transforms.Compose([
         transforms.ColorJitter(0.1, 0.1, 0.1, 0.1),
@@ -55,8 +68,8 @@ def main(model_name, **kwargs):
     test_data = datasets.CIFAR10(CIFAR10_ROOT, train=False, transform=transform_test)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=True)
 
-    print('Load CIFAR10 train data OK. data size is {}'.format(tuple(train_data.train_data.shape)))
-    print('Load CIFAR10 test data OK. data size is {}'.format(tuple(test_data.test_data.shape)))
+    logging.info('Load CIFAR10 train data OK. data size is {}'.format(tuple(train_data.train_data.shape)))
+    logging.info('Load CIFAR10 test data OK. data size is {}'.format(tuple(test_data.test_data.shape)))
 
     label_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
@@ -155,8 +168,8 @@ def main(model_name, **kwargs):
     elif model_name == 'dcn5':
         model = dcn5()
 
-    print('model name:%s' % model_name)
-    print('model architecture:\n{}'.format(model))
+    logging.info('model name:%s' % model_name)
+    logging.info('model architecture:\n{}'.format(model))
 
     save_file = 'cifar10-%s.pkl' % model_name
 
@@ -175,7 +188,7 @@ def main(model_name, **kwargs):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], batch_size=BATCH_SIZE, cuda=True, reduction=16, groups=4)
+    main(sys.argv[1], batch_size=BATCH_SIZE, cuda=True, reduction=16, groups=4, logfile='cifar10.log')
     # main('cnn1', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn3', batch_size=BATCH_SIZE, cuda=True)
     # main('cnn5', batch_size=BATCH_SIZE, cuda=True)
