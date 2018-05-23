@@ -25,7 +25,7 @@ from __future__ import print_function
 import os
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow as tf
+import tf as tf
 
 # Process images of this size. Note that this differs from the original CIFAR
 # image size of 32 x 32. If one alters this number, then the entire model
@@ -174,7 +174,7 @@ def distorted_inputs(data_dir, batch_size):
         # Because these operations are not commutative, consider randomizing
         # the order their operation.
         # NOTE: since per_image_standardization zeros the mean and makes
-        # the stddev unit, this likely has no effect see tensorflow#1458.
+        # the stddev unit, this likely has no effect see tf#1458.
         distorted_image = tf.image.random_brightness(distorted_image,
                                                      max_delta=63)
         distorted_image = tf.image.random_contrast(distorted_image,

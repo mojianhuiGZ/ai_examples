@@ -24,7 +24,7 @@ from __future__ import print_function
 
 import os
 
-import tensorflow as tf
+import tf as tf
 
 import cifar10_input
 

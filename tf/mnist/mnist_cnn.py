@@ -12,8 +12,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import tensorflow as tf
-from tensorflow.contrib.learn.python.learn import datasets
+import tf as tf
+from tf.contrib.learn.python.learn import datasets
 
 
 class MnistCNN:
@@ -96,7 +96,7 @@ def main():
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         for i in range(10000):
-            batch = dataset.train.next_batch(50)
+            batch = dataset.train.get_next_batch(50)
 
             if i % 100 == 0:
                 train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_target: batch[1], dropout_probablity: 0.})

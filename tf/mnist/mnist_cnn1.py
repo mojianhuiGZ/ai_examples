@@ -27,8 +27,8 @@ import time
 import math
 from six.moves import xrange  # pylint: disable=redefined-builtin
 
-import tensorflow as tf
-from tensorflow.contrib.learn.python.learn import datasets
+import tf as tf
+from tf.contrib.learn.python.learn import datasets
 
 # Basic model parameters as external flags.
 FLAGS = None
@@ -169,8 +169,8 @@ def fill_feed_dict(data_set, images_pl, labels_pl):
     """
     # Create the feed_dict for the placeholders filled with the next
     # `batch size` examples.
-    images_feed, labels_feed = data_set.next_batch(FLAGS.batch_size,
-                                                   FLAGS.fake_data)
+    images_feed, labels_feed = data_set.get_next_batch(FLAGS.batch_size,
+                                                       FLAGS.fake_data)
     feed_dict = {
         images_pl: images_feed,
         labels_pl: labels_feed,

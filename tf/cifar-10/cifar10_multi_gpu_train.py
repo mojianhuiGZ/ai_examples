@@ -28,7 +28,7 @@ System        | Step Time (sec/batch)  |     Accuracy
 Usage:
 Please see the tutorial and website for how to download the CIFAR-10
 data set, compile the program and train the model.
-http://tensorflow.org/tutorials/deep_cnn/
+http://tf.org/tutorials/deep_cnn/
 """
 
 # Reference 1 : https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_multi_gpu_train.py
@@ -45,7 +45,7 @@ import time
 
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow as tf
+import tf as tf
 import cifar10
 
 FLAGS = tf.app.flags.FLAGS

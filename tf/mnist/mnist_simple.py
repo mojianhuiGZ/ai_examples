@@ -6,8 +6,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import tensorflow as tf
-from tensorflow.contrib.learn.python.learn.datasets import mnist
+import tf as tf
+from tf.contrib.learn.python.learn.datasets import mnist
 
 mnist = mnist.read_data_sets("data/", one_hot=True, source_url='http://yann.lecun.com/exdb/mnist/')
 
@@ -25,7 +25,7 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 sess.run(init)
 for i in range(1000):
-    batch_xs, batch_ys = mnist.train.next_batch(100)
+    batch_xs, batch_ys = mnist.train.get_next_batch(100)
     sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
 
 correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))

@@ -24,7 +24,7 @@ accuracy after 100K steps in 8 hours of training time.
 Usage:
 Please see the tutorial and website for how to download the CIFAR-10
 data set, compile the program and train the model.
-http://tensorflow.org/tutorials/deep_cnn/
+http://tf.org/tutorials/deep_cnn/
 """
 
 # Reference 1 : https://github.com/tensorflow/models/blob/master/tutorials/image/cifar10/cifar10_eval.py
@@ -39,7 +39,7 @@ import math
 import time
 
 import numpy as np
-import tensorflow as tf
+import tf as tf
 
 import cifar10
 
