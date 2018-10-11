@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 
 # Reference 1: http://www.tensorfly.cn/tfdoc/tutorials/mnist_beginners.html
@@ -6,10 +5,12 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import tf as tf
-from tf.contrib.learn.python.learn.datasets import mnist
+import tensorflow as tf
+from tensorflow.contrib.learn.python.learn.datasets import mnist
 
-mnist = mnist.read_data_sets("data/", one_hot=True, source_url='http://yann.lecun.com/exdb/mnist/')
+mnist = mnist.read_data_sets("data/",
+                             one_hot=True,
+                             source_url='http://yann.lecun.com/exdb/mnist/')
 
 x = tf.placeholder("float", [None, 784])
 y_ = tf.placeholder("float", [None, 10])
