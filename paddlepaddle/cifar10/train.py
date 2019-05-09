@@ -1,23 +1,12 @@
-# Copyright (c) 2016 PaddlePaddle Authors. All Rights Reserved
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License
+# coding: utf-8
 
 from __future__ import print_function
+import sys
+import argparse
+import numpy
 
 import paddle
 import paddle.fluid as fluid
-import numpy
-import sys
 
 try:
     from paddle.fluid.contrib.trainer import *
@@ -70,16 +59,12 @@ def train(use_cuda, train_program, params_dirname):
     def event_handler(event):
         if isinstance(event, EndStepEvent):
             if event.step % 100 == 0:
-                # print("\nPass %d, Batch %d, Cost %f, Acc %f" %
-                #       (event.step, event.epoch, event.metrics[0],
-                #        event.metrics[1]))
-                msg = "\nPass %d, Batch %d, " % (event.step, event.epoch)
-                for m in event.metrics:
-                    msg += "Cost %f, Acc %f, " % (m[0], m[1])
-
-                # print("\nPass %d, Batch %d, Cost %f, Acc %f" %
-                #       (event.step, event.epoch, event.metrics[0],
-                #        event.metrics[1]))
+                print("\nPass %d, Batch %d, Cost %f, Acc %f" %
+                      (event.step, event.epoch, event.metrics[0],
+                       event.metrics[1]))
+                # msg = "\nPass %d, Batch %d, " % (event.step, event.epoch)
+                # for m in event.metrics:
+                #     msg += "Cost %f, Acc %f, " % (m[0], m[1])
             else:
                 sys.stdout.write('.')
                 sys.stdout.flush()
@@ -94,11 +79,11 @@ def train(use_cuda, train_program, params_dirname):
                 trainer.save_params(params_dirname)
 
     place = fluid.CUDAPlace(0) if use_cuda else fluid.CPUPlace()
-    # trainer = Trainer(
-    #     train_func=train_program, optimizer_func=optimizer_program, place=place)
     trainer = Trainer(
-        train_func=train_program, optimizer_func=optimizer_program,
-        place=place, parallel=True)
+        train_func=train_program, optimizer_func=optimizer_program, place=place)
+    # trainer = Trainer(
+    #     train_func=train_program, optimizer_func=optimizer_program,
+    #     place=place, parallel=True)
 
     trainer.train(
         reader=train_reader,
@@ -162,6 +147,17 @@ def main(use_cuda):
 
 
 if __name__ == '__main__':
-    # For demo purpose, the training runs on CPU
-    # Please change accordingly.
     main(use_cuda=False)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='重新生成所有书签的标题')
+    parser.add_argument('input_file', help='chrome的书签文件')
+    parser.add_argument('output_file', nargs='?', default='output.html',
+                        help='输出文件')
+    args = parser.parse_args()
+    with open(args.input_file, 'r') as f:
+        bookmarks = f.read()
+        f.close()
+        extract_title(bookmarks, args.output_file)
+

@@ -1,0 +1,8 @@
+€}q(Uvgg]qUvgg_bn_dropqaUresnet]q(Uconv_bn_layerqUshortcutqU
+layer_warpqUresnet_cifar10qU
+basicblockq	eUdatetime]q
+(U	timedeltaqUMAXYEARqUdateqUdatetime_CAPIqUtzinfoqUtimeqUMINYEARqUdatetimeqeUtrain]q(Uinference_networkqUoptimizer_programqUtrain_networkqUtrainqUmainqUinferqeUshutil]q(UcopyfileqUignore_patternsqUcopytreeqUget_archive_formatsqUcopyfileobjqUregister_archive_formatq Ucopymodeq!Umake_archiveq"Umoveq#Uunregister_archive_formatq$Urmtreeq%UErrorq&Ucopyq'U	ExecErrorq(Ucopy2q)USpecialFileErrorq*Ucopystatq+UWindowsErrorq,eUos]q-(Upopen4q.Uexecleq/Upopen3q0USEEK_CURq1Uspawnlpq2Uexeclpq3Uenvironq4Uspawnvpq5Uspawnlq6Uexecvpq7Umakedirsq8Ulinesepq9UP_WAITq:Uspawnvq;Uspawnveq<Uexecvpeq=Uunsetenvq>USEEK_SETq?Ugetenvq@Upopen2qAUwalkqBUspawnleqCUexeclqDUnameqEUSEEK_ENDqFUspawnlpeqGU	P_NOWAITOqHUP_NOWAITqIU
+removedirsqJUrenamesqKUspawnvpeqLUexeclpeqMeU
+my_cifar10]qN(UtrainerqOUtrain_programqPUUSE_CUDAqQUtest_readerqRhUevent_handlerqSU
+BATCH_SIZEqTUconvolutional_networkqUUtrain_readerqVUplaceqWU
+inferencerqXUPARAMS_DIRNAMEqYeu.
